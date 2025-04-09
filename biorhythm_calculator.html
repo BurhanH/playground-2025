@@ -1,0 +1,132 @@
+<!-- This HTML file implements a Biorhythm Calculator. Users can input their birth date and a target date to calculate their physical, emotional, and intellectual biorhythms. The results are displayed numerically and graphically using Chart.js. -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biorhythm Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Biorhythm Calculator</h1>
+        <form id="biorhythmForm">
+            <label for="birthDate">Enter your birth date:</label>
+            <input type="date" id="birthDate" required>
+            <label for="targetDate">Enter the target date:</label>
+            <input type="date" id="targetDate" required>
+            <button type="submit">Calculate</button>
+        </form>
+        <div class="results" id="results"></div>
+        <canvas id="biorhythmChart" width="400" height="200" style="display: none;"></canvas>
+    </div>
+    <script>
+        function calculateBiorhythm(birthDate, targetDate) {
+            const birthTime = new Date(birthDate).getTime();
+            const targetTime = new Date(targetDate).getTime();
+            const daysLived = (targetTime - birthTime) / (1000 * 60 * 60 * 24);
+
+            const physical = Math.sin((2 * Math.PI * daysLived) / 23).toFixed(4);
+            const emotional = Math.sin((2 * Math.PI * daysLived) / 28).toFixed(4);
+            const intellectual = Math.sin((2 * Math.PI * daysLived) / 33).toFixed(4);
+
+            return { physical, emotional, intellectual, daysLived };
+        }
+
+        function plotBiorhythmChart(daysLived) {
+            const ctx = document.getElementById('biorhythmChart').getContext('2d');
+            const labels = Array.from({ length: 30 }, (_, i) => `Day ${i - 15}`);
+            const physicalData = labels.map((_, i) => Math.sin((2 * Math.PI * (daysLived + i - 15)) / 23).toFixed(4));
+            const emotionalData = labels.map((_, i) => Math.sin((2 * Math.PI * (daysLived + i - 15)) / 28).toFixed(4));
+            const intellectualData = labels.map((_, i) => Math.sin((2 * Math.PI * (daysLived + i - 15)) / 33).toFixed(4));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Physical', data: physicalData, borderColor: 'red', fill: false },
+                        { label: 'Emotional', data: emotionalData, borderColor: 'blue', fill: false },
+                        { label: 'Intellectual', data: intellectualData, borderColor: 'green', fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Days' } },
+                        y: { title: { display: true, text: 'Biorhythm Value' } }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('biorhythmForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const birthDate = document.getElementById('birthDate').value;
+            const targetDate = document.getElementById('targetDate').value;
+
+            if (birthDate && targetDate) {
+                const { physical, emotional, intellectual, daysLived } = calculateBiorhythm(birthDate, targetDate);
+                document.getElementById('results').innerHTML = `
+                    <p>Physical: ${physical}</p>
+                    <p>Emotional: ${emotional}</p>
+                    <p>Intellectual: ${intellectual}</p>
+                `;
+                const chart = document.getElementById('biorhythmChart');
+                chart.style.display = 'block';
+                plotBiorhythmChart(daysLived);
+            }
+        });
+    </script>
+</body>
+</html>
